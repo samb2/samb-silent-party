@@ -5,6 +5,8 @@ import debug0 from 'debug';
 import { logger } from './config/logger';
 import { App } from './app';
 
+import { Server as SocketServer } from 'socket.io';
+
 export class Server {
     port: number = Config.server.port;
     server: any;
@@ -19,10 +21,42 @@ export class Server {
          * Create HTTP server.
          */
         this.server = http.createServer(new App().app);
-        this.server.listen(this.port, () => {
+
+        this.server.on('error', this.onError);
+
+        const io = new SocketServer(this.server);
+
+        let currentTime = 0;
+        let src;
+
+        io.on('connection', (socket) => {
+            console.log('a user connected');
+
+            socket.on('select', (data) => {
+                currentTime = 0;
+                io.emit('playSelectedSong', data);
+            });
+
+            socket.on('pause', function () {
+                io.emit('pauseCurrentSong');
+            });
+
+            socket.on('paused', function (data) {
+                currentTime = data.currentTime;
+                src = data.src;
+            });
+
+            socket.on('play', () => {
+                io.emit('playCurrentSong', { currentTime, src });
+            });
+
+            socket.on('disconnect', () => {
+                //console.log('user disconnected');
+            });
+        });
+        this.server.listen(this.port, '0.0.0.0', () => {
             logger.info(`Server listening on port: ${this.port} Mode = ${Config.server.environment}`);
         });
-        this.server.on('error', this.onError);
     }
 
     /**

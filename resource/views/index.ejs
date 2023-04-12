@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Page Title</title>
+    <meta https-equiv="Content-Security-Policy" content="default-src *;" />
+</head>
+<body>
+
+<h1>This is a user panel</h1>
+<audio preload="true" id="myaudio">
+    <source type="audio/mpeg" class="audio-source">
+    Your browser does not support the audio element.
+</audio>
+<audio id="audioPlayer"></audio>
+
+</body>
+<script src="jquery.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    var audio = document.getElementById('myaudio');
+    //------------- load music -------------
+    $('#load').click(function() {
+        audio.load();
+        $('#load').html('Loading by button...');
+    });
+    //play and pause it once
+    document.addEventListener('touchstart', function() {
+        audio.load();
+        $('#info').html('Loading by touch...');
+    });
+
+    function loaded() {
+        $('#info').html('Loaded by touch.');
+        $('#load').html('Loaded by button.');
+    }
+
+    audio.addEventListener('canplay', loaded, false);
+    // ----------------------------------
+
+    socket.on("playSelectedSong", function(data) {
+        //audio.currentTime = data;
+        $('#load').html('Audio Play');
+        audio.src = `/stream/${data.music}`;
+        audio.play();
+    });
+    socket.on("playCurrentSong", async function(data) {
+        //audio.currentTime = data.currentTime;
+        //audio.src = data.src;
+        // Calculate the byte range for the desired currentTime
+        const byteRange = `bytes=${Math.floor(data.currentTime)}-`;
+// Make a GET request to the stream endpoint with the Range header set to the byte range
+        fetch(`${data.src}`, {
+            headers: {
+                Range: byteRange
+            }
+        }).then((response) => {
+            audio.play();
+        }).catch((error) => {
+            console.error(error);
+        });
+    });
+
+    socket.on("pauseCurrentSong", function() {
+        const currentTime = audio.currentTime
+        const src = audio.src
+        audio.pause();
+        socket.emit('paused', { currentTime, src })
+    });
+</script>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Page Title</title>
+    <meta https-equiv="Content-Security-Policy" content="default-src *;" />
+    <style>
+        audio {
+            width: 100%;
+            max-width: 500px;
+            margin: 10px auto;
+            display: block;
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0px 3px 5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+
+<h1>This is an admin panel</h1>
+
+<audio preload="true" id="myaudio" controls>
+    <source type="audio/mpeg" class="audio-source">
+    Your browser does not support the audio element.
+</audio>
+
+<% list.forEach(music => { %>
+    <p style="padding: 10px" onclick="play(`<%= music; %>`)"><%= music; %></p>
+<% }); %>
+
+</body>
+<script src="jquery.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    var audio = document.getElementById('myaudio');
+</script>
+<script>
+    function play(music) {
+        audio.src = `/stream/${music}`;
+        audio.play();
+        socket.emit('select', { music })
+    }
+
+    audio.addEventListener("play", function() {
+        socket.emit("play");
+    });
+    audio.addEventListener("pause", function() {
+        socket.emit("pause");
+    });
+</script>
+</html>
