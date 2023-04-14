@@ -7,6 +7,8 @@ const router = express.Router();
 router.get('/', MainController.main);
 router.get('/stream/:music', MainController.stream);
 router.get('/admin', MainController.admin);
+router.get('/admin2', MainController.admin2);
+router.get('/admin/manage', MainController.manage);
 
 // Error 404
 router.all('*', () => {

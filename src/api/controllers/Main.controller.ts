@@ -2,6 +2,8 @@ import Controller from './Controller';
 import { Response, Request, NextFunction } from 'express';
 import * as fs from 'fs';
 import path from 'path';
+import getMP3Duration from 'get-mp3-duration';
+import NodeID3 from 'node-id3';
 
 class MainController extends Controller {
     main(req: Request, res: Response, next: NextFunction) {
@@ -53,10 +55,65 @@ class MainController extends Controller {
         }
     }
 
+    async admin2(req: Request, res: Response, next: NextFunction) {
+        try {
+            // Set Directory
+            const directory = process.cwd() + '/public/musics/';
+            const files = fs.readdirSync(directory);
+
+            const musicsInfo: any = [];
+
+            for (const file of files) {
+                const filePath = `${directory}${file}`;
+                const stats = fs.statSync(filePath);
+                const buffer = fs.readFileSync(filePath);
+
+                const tags = NodeID3.read(filePath);
+                const image = tags.image;
+                const artist = tags.artist;
+
+                // ----------- Get Duration -----------
+                const duration = getMP3Duration(buffer);
+                const total_seconds = duration / 1000;
+                const minutes = Math.floor(total_seconds / 60);
+                const seconds = Math.floor(total_seconds % 60);
+                const formateDuration = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                // ------------------------------------
+
+                //----------- Get File Size -----------
+                const fileSizeInBytes = (stats.size / 1048576).toFixed(2);
+                //----------- Get File Format -----------
+                const fileFormat = file.split('.').pop();
+
+                musicsInfo.push({
+                    name: file,
+                    size: fileSizeInBytes,
+                    format: fileFormat,
+                    duration: formateDuration,
+                    image,
+                    artist,
+                });
+            }
+            //console.log(musicsInfo);
+            res.render('admin2', { musicsInfo });
+        } catch (e: any) {
+            next(e);
+        }
+    }
+
     async admin(req: Request, res: Response, next: NextFunction) {
         try {
             const list = fs.readdirSync(process.cwd() + '/public/musics');
             res.render('admin', { list });
+        } catch (e: any) {
+            next(e);
+        }
+    }
+
+    async manage(req: Request, res: Response, next: NextFunction) {
+        try {
+            // const list = fs.readdirSync(process.cwd() + '/public/musics');
+            // res.render('admin', { list });
         } catch (e: any) {
             next(e);
         }
