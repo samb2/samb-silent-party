@@ -4,8 +4,7 @@ import * as fs from 'fs';
 import path from 'path';
 import getMP3Duration from 'get-mp3-duration';
 import NodeID3 from 'node-id3';
-
-const ip = require('ip');
+import ip from 'ip';
 
 class MainController extends Controller {
     main(req: Request, res: Response, next: NextFunction) {
