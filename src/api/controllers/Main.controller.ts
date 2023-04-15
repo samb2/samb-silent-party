@@ -89,15 +89,16 @@ class MainController extends Controller {
                 //----------- Get File Format -----------
                 const fileFormat = file.split('.').pop();
                 const fileName = file.split('.').shift();
-
-                musicsInfo.push({
-                    name: fileName,
-                    format: fileFormat,
-                    size: fileSizeInBytes,
-                    duration: formateDuration,
-                    image,
-                    artist,
-                });
+                if (fileFormat !== 'DS_Store') {
+                    musicsInfo.push({
+                        name: fileName,
+                        format: fileFormat,
+                        size: fileSizeInBytes,
+                        duration: formateDuration,
+                        image,
+                        artist,
+                    });
+                }
             }
             //console.log(musicsInfo);
             //console.log(qrCodeUrl);
@@ -118,6 +119,17 @@ class MainController extends Controller {
 
     async manage(req: Request, res: Response, next: NextFunction) {
         try {
+            // const list = fs.readdirSync(process.cwd() + '/public/musics');
+            // res.render('admin', { list });
+        } catch (e: any) {
+            next(e);
+        }
+    }
+
+    async upload(req: Request, res: Response, next: NextFunction) {
+        try {
+            //res.send('File uploaded successfully!');
+            res.redirect('/admin2');
             // const list = fs.readdirSync(process.cwd() + '/public/musics');
             // res.render('admin', { list });
         } catch (e: any) {
