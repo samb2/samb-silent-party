@@ -5,6 +5,8 @@ import path from 'path';
 import getMP3Duration from 'get-mp3-duration';
 import NodeID3 from 'node-id3';
 
+const ip = require('ip');
+
 class MainController extends Controller {
     main(req: Request, res: Response, next: NextFunction) {
         try {
@@ -57,6 +59,9 @@ class MainController extends Controller {
 
     async admin2(req: Request, res: Response, next: NextFunction) {
         try {
+            const ipAddress = await ip.address();
+            const url = `http://${ipAddress}:${process.env.PORT}`;
+            const qrCodeUrl = await this.generateQrCode(url);
             // Set Directory
             const directory = process.cwd() + '/public/musics/';
             const files = fs.readdirSync(directory);
@@ -84,18 +89,20 @@ class MainController extends Controller {
                 const fileSizeInBytes = (stats.size / 1048576).toFixed(2);
                 //----------- Get File Format -----------
                 const fileFormat = file.split('.').pop();
+                const fileName = file.split('.').shift();
 
                 musicsInfo.push({
-                    name: file,
-                    size: fileSizeInBytes,
+                    name: fileName,
                     format: fileFormat,
+                    size: fileSizeInBytes,
                     duration: formateDuration,
                     image,
                     artist,
                 });
             }
             //console.log(musicsInfo);
-            res.render('admin2', { musicsInfo });
+            //console.log(qrCodeUrl);
+            res.render('admin2', { musicsInfo, qrCodeUrl, url });
         } catch (e: any) {
             next(e);
         }
